@@ -27,6 +27,7 @@ from tkinter import messagebox,ttk
 import tkinter as tk
 from PIL import Image,ImageTk
 
+
 class LCD_CNN:
     def __init__(self,root):
         self.root=root
@@ -335,4 +336,3 @@ if __name__ == "__main__":
         root=Tk()
         obj=LCD_CNN(root)
         root.mainloop()
-
