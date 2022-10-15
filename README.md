@@ -5,8 +5,6 @@
 
 This application purposes to aid in early detection of lung cancer to give patients the best chance at recovery and survival using CNN Model. Using a data set of thousands of high-resolution lung scans, this model will accurately determine when lesions in the lungs are cancerous. This will dramatically reduce the false positive rate that plagues the current detection technology, get patients earlier access to life-saving interventions and give radiologists more time to spend with their patients.
 
-![Adenocarcinoma-Detection](https://user-images.githubusercontent.com/68781375/162584408-450580c0-3354-470b-a69c-180a19802fd4.jpg)
-
 
 ## Dataset
 
