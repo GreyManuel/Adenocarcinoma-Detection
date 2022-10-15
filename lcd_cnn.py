@@ -308,4 +308,24 @@ class LCD_CNN:
 
                 messagebox.showinfo("Train Data" , "Model Trained Successfully!")
 
+                ## Function to plot confusion matrix
+                def plot_confusion_matrix(df_confusion, title='Confusion matrix', cmap=plt.cm.gray_r):\
 
+                    plt.matshow(df_confusion, cmap=cmap)  # imshow
+                    # plt.title(title)
+                    plt.colorbar()
+                    tick_marks = np.arange(len(df_confusion.columns))
+                    plt.title(title)
+                    plt.xticks(tick_marks, df_confusion.columns, rotation=45)
+                    plt.yticks(tick_marks, df_confusion.index)
+                    # plt.tight_layout()
+                    plt.ylabel(df_confusion.index.name)
+                    plt.xlabel(df_confusion.columns.name)
+                    plt.show()
+                plot_confusion_matrix(df_confusion)
+                # print(y_true,y_pred)
+                # print(confusion_matrix(y_true, y_pred))
+                # print(actualprediction.eval({x:[i[0] for i in validationData], y:[i[1] for i in validationData]}))
+                # print(finalprediction.eval({x:[i[0] for i in validationData], y:[i[1] for i in validationData]}))
+
+        network(x)
