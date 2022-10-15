@@ -144,4 +144,168 @@ class LCD_CNN:
         self.b3["state"] = "normal"
         self.b3.config(cursor="hand2")
 
+# Data training is the process of training the model based on the dataset and then predict on new data.
+    def train_data(self):
+
+        imageData = np.load('imageDataNew-10-10-5.npy',allow_pickle=True)
+        trainingData = imageData[0:45]
+        validationData = imageData[45:50]
+
+        training_data=Label(text="Total Training Data: " + str(len(trainingData)),font=("Times New Roman",13,"bold"),bg="black", fg="white",)
+        training_data.place(x=750,y=150,width=200,height=18)
+
+        validation_data=Label(text="Total Validation Data: " + str(len(validationData)),font=("Times New Roman",13,"bold"),bg="black",fg="white",)
+        validation_data.place(x=750,y=190,width=200,height=18)
+
+        x = tf.placeholder('float')
+        y = tf.placeholder('float')
+        size = 10
+        keep_rate = 0.8
+        NoSlices = 5
+
+        def convolution3d(x, W):
+            return tf.nn.conv3d(x, W, strides=[1, 1, 1, 1, 1], padding='SAME')
+
+
+        def maxpooling3d(x):
+            return tf.nn.max_pool3d(x, ksize=[1, 2, 2, 2, 1], strides=[1, 2, 2, 2, 1], padding='SAME')
+
+        def cnn(x):
+            x = tf.reshape(x, shape=[-1, size, size, NoSlices, 1])
+            convolution1 = tf.nn.relu(
+                convolution3d(x, tf.Variable(tf.random_normal([3, 3, 3, 1, 32]))) + tf.Variable(tf.random_normal([32])))
+            convolution1 = maxpooling3d(convolution1)
+            convolution2 = tf.nn.relu(
+                convolution3d(convolution1, tf.Variable(tf.random_normal([3, 3, 3, 32, 64]))) + tf.Variable(
+                    tf.random_normal([64])))
+            convolution2 = maxpooling3d(convolution2)
+            convolution3 = tf.nn.relu(
+                convolution3d(convolution2, tf.Variable(tf.random_normal([3, 3, 3, 64, 128]))) + tf.Variable(
+                    tf.random_normal([128])))
+            convolution3 = maxpooling3d(convolution3)
+            convolution4 = tf.nn.relu(
+                convolution3d(convolution3, tf.Variable(tf.random_normal([3, 3, 3, 128, 256]))) + tf.Variable(
+                    tf.random_normal([256])))
+            convolution4 = maxpooling3d(convolution4)
+            convolution5 = tf.nn.relu(
+                convolution3d(convolution4, tf.Variable(tf.random_normal([3, 3, 3, 256, 512]))) + tf.Variable(
+                    tf.random_normal([512])))
+            convolution5 = maxpooling3d(convolution4)
+            fullyconnected = tf.reshape(convolution5, [-1, 256])
+            fullyconnected = tf.nn.relu(
+                tf.matmul(fullyconnected, tf.Variable(tf.random_normal([256, 256]))) + tf.Variable(tf.random_normal([256])))
+            fullyconnected = tf.nn.dropout(fullyconnected, keep_rate)
+            output = tf.matmul(fullyconnected, tf.Variable(tf.random_normal([256, 2]))) + tf.Variable(tf.random_normal([2]))
+            return output
+
+        def network(x):
+            prediction = cnn(x)
+            cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
+            optimizer = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(cost)
+            epochs = 100
+            with tf.Session() as session:
+                session.run(tf.global_variables_initializer())
+                for epoch in range(epochs):
+                    epoch_loss = 0
+                    for data in trainingData:
+                        try:
+                            X = data[0]
+                            Y = data[1]
+                            _, c = session.run([optimizer, cost], feed_dict={x: X, y: Y})
+                            epoch_loss += c
+                        except Exception as e:
+                            pass
+
+                    correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y, 1))
+                   # if tf.argmax(prediction, 1) == 0:
+                    accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+                    print('Epoch', epoch + 1, 'completed out of', epochs, 'loss:', epoch_loss)
+                    # print('Correct:',correct.eval({x:[i[0] for i in validationData], y:[i[1] for i in validationData]}))
+                    print('Accuracy:', accuracy.eval({x: [i[0] for i in validationData], y: [i[1] for i in validationData]}))
+                #print('Final Accuracy:', accuracy.eval({x: [i[0] for i in validationData], y: [i[1] for i in validationData]}))
+                x1 = accuracy.eval({x: [i[0] for i in validationData], y: [i[1] for i in validationData]})
+
+                final_accuracy=Label(text="Final Accuracy: " + str(x1),font=("Times New Roman",13,"bold"),bg="black", fg="white",)
+                final_accuracy.place(x=750,y=230,width=200,height=18)
+
+                patients = []
+                actual = []
+                predicted = []
+
+                finalprediction = tf.argmax(prediction, 1)
+                actualprediction = tf.argmax(y, 1)
+                for i in range(len(validationData)):
+                    patients.append(validationData[i][2])
+                for i in finalprediction.eval({x: [i[0] for i in validationData], y: [i[1] for i in validationData]}):
+                    if(i==1):
+                        predicted.append("Cancer")
+                    else:
+                        predicted.append("No Cancer")
+                for i in actualprediction.eval({x: [i[0] for i in validationData], y: [i[1] for i in validationData]}):
+                    if(i==1):
+                        actual.append("Cancer")
+                    else:
+                        actual.append("No Cancer")
+                for i in range(len(patients)):
+                    print("----------------------------------------------------")
+                    print("Patient: ",patients[i])
+                    print("Actual: ", actual[i])
+                    print("Predicted: ", predicted[i])
+                    print("----------------------------------------------------")
+
+                # messagebox.showinfo("Result" , "Patient: " + ' '.join(map(str,patients)) + "\nActual: " + str(actual) + "\nPredicted: " + str(predicted) + "Accuracy: " + str(x1))
+
+                y_actual = pd.Series(
+                    (actualprediction.eval({x: [i[0] for i in validationData], y: [i[1] for i in validationData]})),
+                    name='Actual')
+                y_predicted = pd.Series(
+                    (finalprediction.eval({x: [i[0] for i in validationData], y: [i[1] for i in validationData]})),
+                    name='Predicted')
+
+                df_confusion = pd.crosstab(y_actual, y_predicted).reindex(columns=[0,1],index=[0,1], fill_value=0)
+                print('Confusion Matrix:\n')
+                print(df_confusion)
+
+                prediction_label=Label(text=">>>>    P R E D I C T I O N    <<<<",font=("Times New Roman",14,"bold"),bg="#778899", fg="black",)
+                prediction_label.place(x=0,y=458,width=1006,height=20)
+
+                result1 = []
+
+                for i in range(len(validationData)):
+                    result1.append(patients[i])
+                    if(y_actual[i] == 1):
+                        result1.append("Cancer")
+                    else:
+                        result1.append("No Cancer")
+
+                    if(y_predicted[i] == 1):
+                        result1.append("Cancer")
+                    else:
+                        result1.append("No Cancer")
+
+                # print(result1)
+
+                total_rows = int(len(patients))
+                total_columns = int(len(result1)/len(patients))
+
+                heading = ["Patient: ", "Actual: ", "Predicted: "]
+
+                self.root.geometry("1006x"+str(500+(len(patients)*20)-20)+"+0+0")
+                self.root.resizable(False, False)
+
+                for i in range(total_rows):
+                    for j in range(total_columns):
+
+                        self.e = Entry(root, width=42, fg='black', font=('Times New Roman',12,'bold'))
+                        self.e.grid(row=i, column=j)
+                        self.e.place(x=(j*335),y=(478+i*20))
+                        self.e.insert(END, heading[j] + result1[j + i*3])
+                        self.e["state"] = "disabled"
+                        self.e.config(cursor="arrow")
+
+                self.b3["state"] = "disabled"
+                self.b3.config(cursor="arrow")
+
+                messagebox.showinfo("Train Data" , "Model Trained Successfully!")
+
 
