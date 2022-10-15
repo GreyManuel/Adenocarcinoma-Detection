@@ -329,3 +329,10 @@ class LCD_CNN:
                 # print(finalprediction.eval({x:[i[0] for i in validationData], y:[i[1] for i in validationData]}))
 
         network(x)
+
+# For GUI
+if __name__ == "__main__":
+        root=Tk()
+        obj=LCD_CNN(root)
+        root.mainloop()
+
