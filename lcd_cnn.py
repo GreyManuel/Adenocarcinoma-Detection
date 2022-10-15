@@ -62,3 +62,26 @@ class LCD_CNN:
         self.b3.place(x=80,y=230,width=180,height=30)
         self.b3["state"] = "disabled"
         self.b3.config(cursor="arrow")
+
+#Data Import lets you upload data from external sources and combine it with data you collect via Analytics.
+    def import_data(self):
+        ##Data directory
+        self.dataDirectory = 'sample_images/'
+        self.lungPatients = os.listdir(self.dataDirectory)
+
+        ##Read labels csv
+        self.labels = pd.read_csv('stage1_labels.csv', index_col=0)
+
+        ##Setting x*y size to 10
+        self.size = 10
+
+        ## Setting z-dimension (number of slices to 5)
+        self.NoSlices = 5
+
+        messagebox.showinfo("Import Data" , "Data Imported Successfully!")
+
+        self.b1["state"] = "disabled"
+        self.b1.config(cursor="arrow")
+        self.b2["state"] = "normal"
+        self.b2.config(cursor="hand2")
+
